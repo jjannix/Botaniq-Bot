@@ -5,7 +5,24 @@ const dotenv = require("dotenv");
 
 dotenv.config();
 
-const client = new Client({ intents: [GatewayIntentBits.Guilds] });
+const requiredEnvVars = ["TOKEN", "CLIENT_ID", "GUILD_ID"];
+for (const envVar of requiredEnvVars) {
+  if (!process.env[envVar]) {
+    console.error(`[FATAL] Missing required environment variable: ${envVar}`);
+    process.exit(1);
+  }
+}
+
+const client = new Client({
+  intents: [
+    GatewayIntentBits.Guilds,
+    GatewayIntentBits.GuildMembers,
+    GatewayIntentBits.GuildPresences,
+    GatewayIntentBits.GuildMessages,
+    GatewayIntentBits.MessageContent,
+    GatewayIntentBits.GuildModeration,
+  ],
+});
 
 client.commands = new Collection();
 const foldersPath = path.join(__dirname, "commands");
@@ -44,4 +61,7 @@ for (const file of eventFiles) {
   }
 }
 
-client.login(process.env.TOKEN);
+client.login(process.env.TOKEN).catch((error) => {
+  console.error("Failed to login:", error);
+  process.exit(1);
+});
